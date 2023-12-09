@@ -786,6 +786,7 @@ namespace MMD
 					result = new Material(Shader.Find("Toon"));
 					result.SetFloat("_BaseColor_Step", 0);
 					result.SetFloat("_1st_ShadeColor_Step", 0);
+					result.SetShaderPassEnabled("SRPDEFAULTUNLIT", false);
 					break;
 				default:
 					string shader_path = GetMmdShaderPath(material, main_texture, is_transparent);
