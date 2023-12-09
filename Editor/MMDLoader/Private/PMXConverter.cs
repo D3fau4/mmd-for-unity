@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using MMD.PMX;
 
@@ -25,10 +26,10 @@ namespace MMD
 		/// <param name='animation_type'>アニメーションタイプ</param>
 		/// <param name='use_ik'>IKを使用するか</param>
 		/// <param name='scale'>スケール</param>
-		public static GameObject CreateGameObject(PMXFormat format, bool use_rigidbody, AnimationType animation_type, bool use_ik, float scale) {
+		public static GameObject CreateGameObject(PMXFormat format, bool use_rigidbody, AnimationType animation_type, bool use_ik, float scale, PMDConverter.ShaderType shader_type) {
 			GameObject result;
 			using (PMXConverter converter = new PMXConverter()) {
-				result = converter.CreateGameObject_(format, use_rigidbody, animation_type, use_ik, scale);
+				result = converter.CreateGameObject_(format, use_rigidbody, animation_type, use_ik, scale, shader_type);
 			}
 			return result;
 		}
@@ -59,7 +60,9 @@ namespace MMD
 		/// <param name='animation_type'>アニメーションタイプ</param>
 		/// <param name='use_ik'>IKを使用するか</param>
 		/// <param name='scale'>スケール</param>
-		private GameObject CreateGameObject_(PMXFormat format, bool use_rigidbody, AnimationType animation_type, bool use_ik, float scale) {
+		private GameObject CreateGameObject_(PMXFormat format, bool use_rigidbody, AnimationType animation_type, bool use_ik, float scale, PMDConverter.ShaderType shader_type)
+		{
+			this.shader_type = shader_type;
 			format_ = format;
 			use_ik_ = use_ik;
 			scale_ = scale;
@@ -578,9 +581,23 @@ namespace MMD
 																	.Select(x=>((x<format_.texture_list.texture_file.Length)? format_.texture_list.texture_file[x]: null)) //有効なテクスチャインデックスならパスの取得
 																	.ToArray();
 			alpha_readable_texture_ = new AlphaReadableTexture(texture_path
-															, format_.meta_header.folder + "/"
-															, format_.meta_header.folder + "/Materials/"
+															, format_.meta_header.folder + Path.DirectorySeparatorChar
+															,  Path.Combine(format_.meta_header.folder, "Materials") + Path.DirectorySeparatorChar
 															);
+
+			foreach (var texture in alpha_readable_texture_.textures)
+			{
+				if (!texture.isReadable)
+				{
+					string assetPath = AssetDatabase.GetAssetPath(texture);
+					TextureImporter textureImporter = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+					textureImporter.isReadable = true;
+					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+				}
+			}
+			
+			AssetDatabase.Refresh();
+			
 			return alpha_readable_texture_.textures;
 		}
 		
@@ -758,13 +775,19 @@ namespace MMD
 			Texture2D main_texture = null;
 			if (material.usually_texture_index < format_.texture_list.texture_file.Length) {
 				string texture_file_name = format_.texture_list.texture_file[material.usually_texture_index];
-				string path = format_.meta_header.folder + "/" + texture_file_name;
+				string path = Path.Combine(format_.meta_header.folder, texture_file_name.Replace($"..{Path.DirectorySeparatorChar}", $"Materials{Path.DirectorySeparatorChar}"));
 				main_texture = (Texture2D)AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D));
 			}
-			
-			//マテリアルに設定
-			string shader_path = GetMmdShaderPath(material, main_texture, is_transparent);
-			Material result = new Material(Shader.Find(shader_path));
+
+			Material result;
+			switch (shader_type)
+			{
+				case PMDConverter.ShaderType.HDRPShader:
+					result = new Material(Shader.Find("Toon"));
+					break;
+				default:
+					string shader_path = GetMmdShaderPath(material, main_texture, is_transparent);
+					result = new Material(Shader.Find(shader_path));
 		
 			// シェーダに依って値が有ったり無かったりするが、設定してもエラーに為らない様なので全部設定
 			result.SetColor("_Color", material.diffuse_color);
@@ -833,6 +856,9 @@ namespace MMD
 					result.SetTexture("_ToonTex", toon_texture);
 					result.SetTextureScale("_ToonTex", new Vector2(1, -1));
 				}
+			}
+					
+					break;
 			}
 
 			// テクスチャが空でなければ登録
@@ -2029,5 +2055,7 @@ namespace MMD
 		bool					use_ik_;
 		float					scale_;
 		AlphaReadableTexture	alpha_readable_texture_ = null;
+
+		private PMDConverter.ShaderType shader_type;
 	}
 }

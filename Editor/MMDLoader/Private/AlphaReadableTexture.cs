@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 public class AlphaReadableTexture : System.IDisposable {
@@ -15,7 +16,7 @@ public class AlphaReadableTexture : System.IDisposable {
 	{
 		texture_path_list_ = texture_path_list;
 		current_directory_ = current_directory;
-		temporary_directory_ = temporary_directory + directory_name + "/";
+		temporary_directory_ = Path.Combine(temporary_directory, directory_name) + Path.DirectorySeparatorChar;
 
 		//テクスチャ作成
 		foreach (string texture_path in texture_path_list_.Where(x=>!string.IsNullOrEmpty(x)).Distinct()) {
@@ -38,21 +39,21 @@ public class AlphaReadableTexture : System.IDisposable {
 	public void Dispose()
 	{
 		//テクスチャ破棄
-		foreach (string texture_path in texture_path_list_.Where(x=>!string.IsNullOrEmpty(x)).Distinct()) {
+		/*foreach (string texture_path in texture_path_list_.Where(x=>!string.IsNullOrEmpty(x)).Distinct()) {
 			DeleteReadableTexture(texture_path);
 		}
 		//ディレクトリの破棄
-		string path = Application.dataPath + "/../" + temporary_directory_; //"Asset/"が被るので1階層上がる
+		string path = Path.Combine(Application.dataPath, "..", temporary_directory_); //"Asset/"が被るので1階層上がる
 		if (System.IO.Directory.Exists(path)) {
 			System.IO.Directory.Delete(path, true);
-		}
+		}*/
 	}
 	
 	/// <summary>
 	/// 解析対象ディレクトリ名の取得
 	/// </summary>
 	/// <value>The directory_name.</value>
-	public static string directory_name {get{return "AlphaReadableTextureDirectory.MmdForUnity";}}
+	public static string directory_name {get{return "AlphaReadableTextureDirectory";}}
 	
 	/// <summary>
 	/// 読み込み可能テクスチャの作成
@@ -61,13 +62,16 @@ public class AlphaReadableTexture : System.IDisposable {
 	private void CreateReadableTexture(string texture_path)
 	{
 		if (!string.IsNullOrEmpty(texture_path)) {
-			string base_texture_path = current_directory_ + texture_path;
-			string readable_texture_path = temporary_directory_ + texture_path;
+			string base_texture_path = Path.Combine(current_directory_, texture_path);
+			string readable_texture_path = Path.Combine(temporary_directory_, texture_path);
 			CreateDirectoryPath(System.IO.Path.GetDirectoryName(readable_texture_path));
-			bool is_copy_success = AssetDatabase.CopyAsset(base_texture_path, readable_texture_path);
-			if (!is_copy_success) {
-				throw new System.InvalidOperationException();
+			File.Copy(base_texture_path, readable_texture_path);
+			AssetDatabase.Refresh();
+			if (!File.Exists(readable_texture_path)) {
+				Debug.LogError($"Failed to copy asset: {base_texture_path} in  {readable_texture_path}");
+				throw new System.InvalidOperationException("Asset copy failed.");
 			}
+
 		}
 	}
 	
@@ -79,8 +83,20 @@ public class AlphaReadableTexture : System.IDisposable {
 	private Texture2D GetReadableTexture(string texture_path)
 	{
 		Texture2D result = null;
-		if (!string.IsNullOrEmpty(texture_path)) {
-			string readable_texture_path = temporary_directory_ + texture_path;
+		if (!string.IsNullOrEmpty(texture_path))
+		{
+			string readable_texture_path = "";
+			if (texture_path.Contains(".." + Path.DirectorySeparatorChar))
+			{
+				var tmp = Directory.GetParent(temporary_directory_).Name;
+				readable_texture_path = Path.Combine(temporary_directory_.Replace(tmp + Path.DirectorySeparatorChar, ""), texture_path.Replace(".." + Path.DirectorySeparatorChar, ""));
+			}
+			else
+			{
+				readable_texture_path = Path.Combine(temporary_directory_, texture_path);
+			}
+			
+			 
 			result = (Texture2D)AssetDatabase.LoadAssetAtPath(readable_texture_path, typeof(Texture2D));
 		}
 		return result;
@@ -112,7 +128,8 @@ public class AlphaReadableTexture : System.IDisposable {
 		//カレントディレクトリ作成
 		if (!System.IO.Directory.Exists(path)) {
 			string name = System.IO.Path.GetFileName(path);
-			AssetDatabase.CreateFolder(parent_path, name);
+			Directory.CreateDirectory(Path.Combine(parent_path, name));
+			AssetDatabase.Refresh();
 		}
 	}
 	

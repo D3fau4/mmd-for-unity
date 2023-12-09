@@ -3,17 +3,18 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1cb97ed3a451a247ba8d40b230bc4bc, type: 3}
+  m_Script: {fileID: 11500000, guid: f31cc5bd53799894e86806a6884e658f, type: 3}
   m_Name: Config
   m_EditorClassIdentifier: 
   inspector_config:
-    use_pmd_preload: 0
-    use_vmd_preload: 0
+    use_pmd_preload: 1
+    use_vmd_preload: 1
   pmd_config:
     shader_type: 2
     animation_type: 2
@@ -22,5 +23,5 @@ MonoBehaviour:
     scale: 0.085
     is_pmx_base_import: 1
   vmd_config:
-    createAnimationFile: 1
+    createAnimationFile: 0
     interpolationQuality: 1

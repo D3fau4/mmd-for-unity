@@ -54,7 +54,7 @@ namespace MMD {
 				}
 				header_ = pmx_format.header;
 				//ゲームオブジェクトの作成
-				game_object = PMXConverter.CreateGameObject(pmx_format, use_rigidbody, animation_type, use_ik, scale);
+				game_object = PMXConverter.CreateGameObject(pmx_format, use_rigidbody, animation_type, use_ik, scale, shader_type);
 	
 				// プレファブパスの設定
 				prefab_path = pmx_format.meta_header.folder + "/" + pmx_format.meta_header.name + ".prefab";

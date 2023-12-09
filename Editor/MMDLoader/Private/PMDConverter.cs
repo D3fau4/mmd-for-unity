@@ -15,7 +15,8 @@ namespace MMD
 		{
 			Default,		/// Unityのデフォルトシェーダ
 			HalfLambert,	/// もやっとしたLambertっぽくなる
-			MMDShader		/// MMDっぽいシェーダ
+			MMDShader,		/// MMDっぽいシェーダ
+			HDRPShader
 		}
 		
 		/// <summary>
@@ -377,6 +378,10 @@ namespace MMD
 						Texture toon_tex = UnityEditor.AssetDatabase.LoadAssetAtPath(resource_path, typeof(Texture)) as Texture;
 						mats[i].SetTexture("_ToonTex", toon_tex);
 						mats[i].SetTextureScale("_ToonTex", new Vector2(1, -1));
+						break;
+					
+					case ShaderType.HDRPShader:
+						mats[i] = new Material(Shader.Find("HDRP/lit"));
 						break;
 				}
 
