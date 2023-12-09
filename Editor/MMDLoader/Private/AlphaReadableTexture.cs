@@ -65,7 +65,12 @@ public class AlphaReadableTexture : System.IDisposable {
 			string base_texture_path = Path.Combine(current_directory_, texture_path);
 			string readable_texture_path = Path.Combine(temporary_directory_, texture_path);
 			CreateDirectoryPath(System.IO.Path.GetDirectoryName(readable_texture_path));
-			File.Copy(base_texture_path, readable_texture_path);
+			
+			if (!File.Exists(readable_texture_path))
+			{
+				File.Copy(base_texture_path, readable_texture_path);
+			}
+			
 			AssetDatabase.Refresh();
 			if (!File.Exists(readable_texture_path)) {
 				Debug.LogError($"Failed to copy asset: {base_texture_path} in  {readable_texture_path}");
