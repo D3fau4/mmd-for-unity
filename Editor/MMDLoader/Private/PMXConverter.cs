@@ -782,8 +782,10 @@ namespace MMD
 			Material result;
 			switch (shader_type)
 			{
-				case PMDConverter.ShaderType.HDRPShader:
+				case PMDConverter.ShaderType.HDRPToonShader:
 					result = new Material(Shader.Find("Toon"));
+					result.SetFloat("_BaseColor_Step", 0);
+					result.SetFloat("_1st_ShadeColor_Step", 0);
 					break;
 				default:
 					string shader_path = GetMmdShaderPath(material, main_texture, is_transparent);

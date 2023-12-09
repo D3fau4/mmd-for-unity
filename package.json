@@ -5,6 +5,6 @@
 	"unity": "2022.2",
 	"description": "Tools for unity HDRP helps make mmd easy",
 	"dependencies": {
-		"com.unity.toonshader": "0.9.5-preview"
+		"com.unity.toonshader": "0.9.4-preview"
 	}
 }
