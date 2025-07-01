@@ -587,6 +587,12 @@ namespace MMD
 
 			foreach (var texture in alpha_readable_texture_.textures)
 			{
+				if (texture == null)
+				{
+					Debug.LogWarning("PMXConverter: Texture is null. This may be caused by a missing texture file or an invalid texture path.");
+					continue;
+				}
+
 				if (!texture.isReadable)
 				{
 					string assetPath = AssetDatabase.GetAssetPath(texture);
