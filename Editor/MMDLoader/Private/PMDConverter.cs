@@ -16,7 +16,7 @@ namespace MMD
 			Default,		/// Unityのデフォルトシェーダ
 			HalfLambert,	/// もやっとしたLambertっぽくなる
 			MMDShader,		/// MMDっぽいシェーダ
-			HDRPToonShader
+			UnityToonShader
 		}
 		
 		/// <summary>
